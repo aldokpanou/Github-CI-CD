@@ -1,20 +1,42 @@
+name: 🚀 Deploy Laravel Application
+
 on: 
   push:
     branches:
       - master
-name: 🚀 Deploy website on push
+
 jobs:
-  web-deploy:
-    name: 🎉 Deploy
+  laravel-deploy:
+    name: 🎉 Deploy Laravel Application
     runs-on: ubuntu-latest
+
     steps:
-    - name: 🚚 Get latest code
-      uses: actions/checkout@v2.3.2
-    
-    - name: 📂 Sync files
+    - name: 🚚 Checkout the latest code
+      uses: actions/checkout@v2
+
+    - name: 🔧 Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3' # Utilisation de PHP 8.3.x
+        extensions: mbstring, exif, pcntl, bcmath, gd, pdo_mysql
+        ini-values: post_max_size=256M, upload_max_filesize=256M, max_execution_time=300
+        coverage: none
+
+    - name: 🧰 Install dependencies via Composer
+      run: composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader --no-dev
+      env:
+        COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+
+    - name: 📂 Sync files to the server
       uses: SamKirkland/FTP-Deploy-Action@4.0.0
       with:
-        server: 	${{ secrets.SERVER_NAME }}
+        server: ${{ secrets.SERVER_NAME }}
         username: ${{ secrets.SERVER_USER }}
         password: ${{ secrets.SERVER_PASSWORD }}
-        server-dir: ${{ secrets.DEPLOY_PATH }} 
+        server-dir: ${{ secrets.DEPLOY_PATH }}
+
+    - name: 🗑️ Cleanup old files (optional)
+      run: php artisan optimize:clear
+
+    - name: 🎉 Complete deployment
+      run: echo "Deployment finished successfully."
