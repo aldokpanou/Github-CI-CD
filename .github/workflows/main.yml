@@ -3,7 +3,7 @@ name: 🚀 Deploy Laravel Application
 on: 
   push:
     branches:
-      - main  # Exécuter le workflow sur les push dans la branche 'main'
+      - master  # Exécuter le workflow sur les push dans la branche 'main'
 
 jobs:
   deploy-laravel:
