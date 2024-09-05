@@ -1,32 +1,43 @@
-name: Deploy Laravel Project via FTP
+name: 🚀 Deploy My Laravel Application
 
-on:
+on: 
   push:
     branches:
-      - master
+      - main  # Remplacer par 'master' si nécessaire
 
 jobs:
-  deploy:
-    name: 📂 Sync files to the server
+  deploy-laravel:
+    name: 🎉 Deploy My Laravel Application
     runs-on: ubuntu-latest
 
     steps:
-    # Checkout the latest code from the repository
-    - name: Checkout repository
+    # Étape 1: Checkout du dernier code
+    - name: 🚚 Checkout the latest code
       uses: actions/checkout@v3
 
-    # Install dependencies using Composer
-    - name: Install Composer dependencies
-      run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+    # Étape 2: Configuration de PHP
+    - name: 🔧 Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2' # PHP 8.2 pour une version stable
+        extensions: mbstring, exif, pcntl, bcmath, gd, pdo_mysql
+        ini-values: post_max_size=128M, upload_max_filesize=128M, max_execution_time=180
+        coverage: none
 
-    # Run Laravel commands (e.g., migrations, caching config/routes)
-    - name: Run Laravel artisan commands
+    # Étape 3: Installation des dépendances avec Composer
+    - name: 🧰 Install dependencies via Composer
+      run: composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader --no-dev
+      env:
+        COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+
+    # Étape 4: Exécution des commandes artisan (migrer, cache)
+    - name: 🛠️ Run Laravel artisan commands
       run: |
         php artisan migrate --force
         php artisan config:cache
         php artisan route:cache
 
-    # Sync files to the server
+    # Étape 5: Synchronisation des fichiers avec le serveur via FTP
     - name: 📂 Sync files to the server
       uses: SamKirkland/FTP-Deploy-Action@4.0.0
       with:
@@ -34,4 +45,11 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         password: ${{ secrets.SERVER_PASSWORD }}
         server-dir: ${{ secrets.DEPLOY_PATH }}
-        local-dir: ./  # The directory containing your Laravel project
+
+    # Étape 6: Nettoyage des fichiers cache Laravel
+    - name: 🗑️ Cleanup old files (optional)
+      run: php artisan optimize:clear
+
+    # Étape 7: Fin du déploiement
+    - name: 🎉 Complete deployment
+      run: echo "Deployment finished successfully."
