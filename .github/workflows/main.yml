@@ -13,7 +13,7 @@ jobs:
     - uses: actions/checkout@v2
 
     # Cache Composer dependencies to speed up the install process
-    - name: Cache Composer dependencies
+    - name: Caches Composer dependencies
       uses: actions/cache@v2
       with:
         path: vendor
