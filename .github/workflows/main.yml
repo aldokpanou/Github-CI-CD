@@ -1,13 +1,13 @@
-name: 🚀 Deploy My Laravel Application
+name: 🚀 Deploy Laravel Application
 
 on: 
   push:
     branches:
-      - master  # Remplacer par 'master' si nécessaire
+      - main  # Exécuter le workflow sur les push dans la branche 'main'
 
 jobs:
   deploy-laravel:
-    name: 🎉 Deploy My Laravel Application
+    name: 🎉 Deploy Laravel Application
     runs-on: ubuntu-latest
 
     steps:
@@ -15,29 +15,15 @@ jobs:
     - name: 🚚 Checkout the latest code
       uses: actions/checkout@v3
 
-    # Étape 2: Configuration de PHP
-    - name: 🔧 Set up PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.2' # PHP 8.2 pour une version stable
-        extensions: mbstring, exif, pcntl, bcmath, gd, pdo_mysql
-        ini-values: post_max_size=128M, upload_max_filesize=128M, max_execution_time=180
-        coverage: none
-
-    # Étape 3: Installation des dépendances avec Composer
+    # Étape 2: Installation des dépendances avec Composer
     - name: 🧰 Install dependencies via Composer
-      run: composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader --no-dev
-      env:
-        COMPOSER_AUTH: ${{ secrets.COMPOSER_AUTH }}
+      run: composer install --no-dev --optimize-autoloader
 
-    # Étape 4: Exécution des commandes artisan (migrer, cache)
-    - name: 🛠️ Run Laravel artisan commands
-      run: |
-        php artisan migrate --force
-        php artisan config:cache
-        php artisan route:cache
+    # Étape 3: Copier le fichier .env.example vers .env
+    - name: 📝 Copy .env.example to .env
+      run: cp .env.example .env
 
-    # Étape 5: Synchronisation des fichiers avec le serveur via FTP
+    # Étape 4: Synchronisation des fichiers avec le serveur via FTP
     - name: 📂 Sync files to the server
       uses: SamKirkland/FTP-Deploy-Action@4.0.0
       with:
@@ -45,11 +31,3 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         password: ${{ secrets.SERVER_PASSWORD }}
         server-dir: ${{ secrets.DEPLOY_PATH }}
-
-    # Étape 6: Nettoyage des fichiers cache Laravel
-    - name: 🗑️ Cleanup old files (optional)
-      run: php artisan optimize:clear
-
-    # Étape 7: Fin du déploiement
-    - name: 🎉 Complete deployment
-      run: echo "Deployment finished successfully."
