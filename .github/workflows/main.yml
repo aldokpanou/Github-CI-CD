@@ -12,6 +12,15 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    # Cache Composer dependencies to speed up the install process
+    - name: Cache Composer dependencies
+      uses: actions/cache@v2
+      with:
+        path: vendor
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
+
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
@@ -19,7 +28,7 @@ jobs:
         extensions: mbstring, exif, bcmath, pdo_mysql
 
     - name: Install dependencies
-      run: composer install --no-dev --optimize-autoloader
+      run: composer install --no-dev --optimize-autoloader --prefer-dist
 
     - name: Sync files to server
       uses: SamKirkland/FTP-Deploy-Action@4.0.0
