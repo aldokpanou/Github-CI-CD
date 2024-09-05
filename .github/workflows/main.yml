@@ -1,33 +1,35 @@
 name: 🚀 Deploy Laravel Application
 
-on: 
+on:
   push:
     branches:
-      - master  # Exécuter le workflow sur les push dans la branche 'main'
+      - master
 
 jobs:
-  deploy-laravel:
-    name: 🎉 Deploy Laravel Application
+  laravel-deploy:
     runs-on: ubuntu-latest
 
     steps:
-    # Étape 1: Checkout du dernier code
-    - name: 🚚 Checkout the latest code
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v2
 
-    # Étape 2: Installation des dépendances avec Composer
-    - name: 🧰 Install dependencies via Composer
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, exif, bcmath, pdo_mysql
+
+    - name: Install dependencies
       run: composer install --no-dev --optimize-autoloader
 
-    # Étape 3: Copier le fichier .env.example vers .env
-    - name: 📝 Copy .env.example to .env
-      run: cp .env.example .env
-
-    # Étape 4: Synchronisation des fichiers avec le serveur via FTP
-    - name: 📂 Sync files to the server
+    - name: Sync files to server
       uses: SamKirkland/FTP-Deploy-Action@4.0.0
       with:
         server: ${{ secrets.SERVER_NAME }}
         username: ${{ secrets.SERVER_USER }}
         password: ${{ secrets.SERVER_PASSWORD }}
         server-dir: ${{ secrets.DEPLOY_PATH }}
+
+    - name: Cleanup
+      run: php artisan optimize:clear
+
+    - run: echo "Deployment finished successfully."
